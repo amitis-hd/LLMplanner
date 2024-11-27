@@ -74,7 +74,9 @@ public abstract class Planner {
    * @param goal
    * @param stateMachine
    * @return
+      
    */
+        
   @TRADEService /*Added to be able to use Trade Service */
   public final ParameterizedAction plan(edu.tufts.hrilab.action.goal.Goal goal, ActionConstraints constraints, StateMachine stateMachine) {
     PddlGenerator pddlBuilder = new PddlGenerator(goal, constraints, stateMachine.getAllFacts(), stateMachine.getRules());
@@ -93,13 +95,19 @@ public abstract class Planner {
         log.error("Planner could not generate a plan. Falling back to LLM.");
 
         // Construct a natural language prompt for the LLM
-        String prompt = "I am a robot that can stand(), crouch(), sit() , lieDown(). Write me a plan to accomplish: " 
-                        + problem.getAbsolutePath() + " only using what I know how to do.";
+        String prompt = "I am a robot and here is my action script file. Use this file to create a plan for the task " + 
+        "() = gotospot[\"the robot moves from ?origin to ?destination\"](Symbol ?actor:spot, Symbol ?origin:location, Symbol ?destination:location, Symbol ?originroom:room, Symbol ?destinationroom:room)"  + 
+        "() = receiveitem[\"the ?actor receives an item ?item handed over by a human while at a location ?location bound to an interactable area ?area containing that item. no perception is performed.\"](Symbol ?actor:spot, Symbol ?item:physobj, Symbol ?propertyType:property, Symbol ?area:area, Symbol ?location:location) " +
+        "() = putdownspot[\"a spot-specific action without perception where the ?spot will place an item it is carrying on an interactable area bound to a specific arm pose.\"] (Symbol ?actor:spot, Symbol ?item:physobj, Symbol ?objectType:property, Symbol ?area:area, Symbol ?location:location) " +
+        "() = gotomovebase[\"the robot moves from ?origin to ?destination\"](Symbol ?actor:movebase, Symbol ?origin:location, Symbol ?destination:location, Symbol ?originroom:room, Symbol ?destinationroom:room)" +
+        "() = pickupitem[\"picks up a (packable) ?item at a location and manages fluent property for locations\"](Symbol ?actor:fetch, Symbol ?item:physobj, Symbol ?objectType:property, Symbol ?area:area, Symbol ?location:location)" +
+        "() = putdown[\"puts down a (packable) ?item at a location and manages fluent property for locations\"](Symbol ?actor:fetch, Symbol ?item:physobj, Symbol ?objectType:property, Symbol ?area:area, Symbol ?location:location) " 
+                        + problem.getAbsolutePath() + " only using what I know how to do. Only return the plan in the right format, and no other text. Here is an example of a line of a plan using an action script: (gotospot spot spotlocation_0 spotlocation_5 room1 room3)";
         try {
             Completion answer = TRADE.getAvailableService(
                 new TRADEServiceConstraints().name("chatCompletion").argTypes(String.class)
             ).call(Completion.class, prompt);
-            
+
 
             if (answer != null) {
                 String llmResponse = answer.getText();

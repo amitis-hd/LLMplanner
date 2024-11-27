@@ -1,9 +1,13 @@
 package edu.tufts.hrilab.config.project;
+
+import edu.tufts.hrilab.action.GoalManagerComponent;
+import edu.tufts.hrilab.diarc.DiarcConfiguration;
+
 import ai.thinkingrobots.trade.TRADE;
 import ai.thinkingrobots.trade.TRADEException;
-import edu.tufts.hrilab.action.GoalManagerComponent;
+
 import edu.tufts.hrilab.action.planner.Planner; 
-import edu.tufts.hrilab.diarc.DiarcConfiguration;
+
 import edu.tufts.hrilab.simspeech.SimSpeechRecognitionComponent;
 import edu.tufts.hrilab.simspeech.SimSpeechProductionComponent;
 import edu.tufts.hrilab.slug.nlg.SimpleNLGComponent;
@@ -43,9 +47,11 @@ public class LLMplannerConfig extends DiarcConfiguration {
         createInstance(SimpleNLGComponent.class);
 
         // Update GoalManager to use the Planner
-        String gmArgs = "-beliefinitfile demos.pl domains/supermarket.pl agents/hw2agents.pl " +
-                "-asl core.asl vision.asl nao/naodemo.asl dialogue/nlg.asl dialogue/handleSemantics.asl dialogue/nlu.asl domains/supermarketRefactor.asl " +
-                "-goal listen(self) -planner edu.tufts.hrilab.action.planner.Planner";
+        String gmArgs = "-selector edu.tufts.hrilab.action.selector.GoalPlanningActionSelector "
+        + "-beliefinitfile demos.pl domains/supermarket.pl agents/hw2agents.pl "
+        + "-asl core.asl vision.asl nao/naodemo.asl dialogue/nlg.asl dialogue/handleSemantics.asl dialogue/nlu.asl domains/supermarketRefactor.asl "
+                + "-goal listen(self)";
+        
         createInstance(GoalManagerComponent.class, gmArgs);
 
         log.info("LLMplannerConfig successfully loaded with Planner integration.");
