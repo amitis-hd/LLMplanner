@@ -7,6 +7,7 @@ package edu.tufts.hrilab.action.planner;
 import ai.thinkingrobots.trade.TRADE;
 import ai.thinkingrobots.trade.TRADEException;
 import ai.thinkingrobots.trade.TRADEService;
+import ai.thinkingrobots.trade.TRADEServiceConstraints;
 import edu.tufts.hrilab.action.*;
 import edu.tufts.hrilab.action.db.ActionDBEntry;
 import edu.tufts.hrilab.action.goal.Goal;
@@ -17,6 +18,7 @@ import edu.tufts.hrilab.fol.Factory;
 import edu.tufts.hrilab.fol.Predicate;
 import edu.tufts.hrilab.fol.Symbol;
 import edu.tufts.hrilab.fol.Variable;
+import edu.tufts.hrilab.llm.Completion;
 import edu.tufts.hrilab.pddl.Action;
 import edu.tufts.hrilab.pddl.Domain;
 import edu.tufts.hrilab.pddl.Pddl;
@@ -73,6 +75,7 @@ public abstract class Planner {
    * @param stateMachine
    * @return
    */
+  @TRADEService /*Added to be able to use Trade Service */
   public final ParameterizedAction plan(edu.tufts.hrilab.action.goal.Goal goal, ActionConstraints constraints, StateMachine stateMachine) {
     PddlGenerator pddlBuilder = new PddlGenerator(goal, constraints, stateMachine.getAllFacts(), stateMachine.getRules());
     pddl = pddlBuilder.build();
@@ -87,14 +90,38 @@ public abstract class Planner {
 
     String plan = plan(domain, problem);
     if (plan == null) {
-      log.error("Can't plan.");
-      return null;
-    } else {
-      log.info("PLAN = " + plan);
-      lastPlan = plan;
+        log.error("Planner could not generate a plan. Falling back to LLM.");
+
+        // Construct a natural language prompt for the LLM
+        String prompt = "I am a robot that can stand(), crouch(), sit() , lieDown(). Write me a plan to accomplish: " 
+                        + problem.getAbsolutePath() + " only using what I know how to do.";
+        try {
+            Completion answer = TRADE.getAvailableService(
+                new TRADEServiceConstraints().name("chatCompletion").argTypes(String.class)
+            ).call(Completion.class, prompt);
+            
+
+            if (answer != null) {
+                String llmResponse = answer.getText();
+                log.info("LLM response: " + llmResponse);
+
+                
+                // Here, assuming the response is directly usable as a plan
+                plan = llmResponse;
+            } else {
+                log.warn("LLM returned no response.");
+                return null; // No fallback plan available
+            }
+        } catch (TRADEException e) {
+            log.error("TRADE service call to LLM failed.", e);
+            return null; // No fallback plan available
+        }
     }
 
-    // convert string plan to a DIARC action script
+    log.info("PLAN = " + plan);
+    lastPlan = plan;
+
+    // Convert the plan into a DIARC action script
     return generateActionScript(plan, goal);
   }
 

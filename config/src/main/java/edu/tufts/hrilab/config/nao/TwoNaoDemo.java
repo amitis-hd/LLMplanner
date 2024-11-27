@@ -14,8 +14,14 @@ import edu.tufts.hrilab.slug.parsing.tldl.TLDLParserComponent;
 import edu.tufts.hrilab.slug.pragmatics.PragmaticsComponent;
 import edu.tufts.hrilab.slug.refResolution.ReferenceResolutionComponent;
 import edu.tufts.hrilab.asr.sphinx4.Sphinx4Component;
+//import edu.tufts.hrilab.config.tr.MultiRobotCadddyDemo;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TwoNaoDemo extends DiarcConfiguration {
+  
+  protected static Logger log = LoggerFactory.getLogger(TwoNaoDemo.class);
   /**
    * Set to true to use gui for speech input
    */
@@ -62,7 +68,9 @@ public class TwoNaoDemo extends DiarcConfiguration {
 //      createInstance(edu.tufts.hrilab.nao.NaoComponent.class, "-groups agent:shafer -url 192.168.1.15 -unsafe -doNotWakeUp -voice high");
     }
 
-    String gmArgs = "-beliefinitfile demos.pl agents/twonaoagents.pl " +
+    String gmArgs =  
+             "-selector edu.tufts.hrilab.action.selector.GoalPlanningActionSelector " +
+            "-beliefinitfile demos.pl agents/twonaoagents.pl " +
             "-asl core.asl vision.asl nao/naodemo.asl dialogue/nlg.asl dialogue/handleSemantics.asl dialogue/nlu.asl " +
             "-goal listen(self)";
 

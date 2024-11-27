@@ -31,6 +31,7 @@ public class MultiRobotCaddyDemoMock extends DiarcConfiguration {
     @Override
     public void runConfiguration() {
         createInstance(edu.tufts.hrilab.slug.listen.ListenerComponent.class);
+        createInstance(edu.tufts.hrilab.llm.LLMComponent.class, "-endpoint http://vm-llama.eecs.tufts.edu:8080");
 
         createInstance(TLDLParserComponent.class, "-dict templatedict.dict -dict multiRobotCaddy.dict -dict multiRobotCaddyHomophones.dict");
 
@@ -87,7 +88,7 @@ public class MultiRobotCaddyDemoMock extends DiarcConfiguration {
 
         //brad: this is last so the GUI window is on top
         simSpeechRec = createInstance(SimSpeechRecognitionComponent.class,
-                "-config multiRobotCaddy.simspeech -nogui -speaker evan");
+                "-config multiRobotCaddy.simspeech  -speaker evan");
 //        if (!showGUI) {
 //            simRecArgs += "-nogui";
 //        }
